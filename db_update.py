@@ -134,11 +134,15 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                         additional_artist_name = input("Other artists? Add name here: ")
 
                 if album_source == 'yt':
-                    thumbnails = requests.get(f'https://www.googleapis.com/youtube/v3/{yt_api_type}?part=snippet&id={album_uri}&key={YOUTUBE_API_KEY}').json()['items'][0]['snippet']['thumbnails']
-                    for size in THUMBNAIL_SIZES:
-                        if size in thumbnails:
-                            image = thumbnails[size]['url'][23:-11]
-                            break
+                    youtube_api_result = requests.get(f'https://www.googleapis.com/youtube/v3/{yt_api_type}?part=snippet&id={album_uri}&key={YOUTUBE_API_KEY}').json()['items']
+                    if youtube_api_result: 
+                        thumbnails = youtube_api_result[0]['snippet']['thumbnails']
+                        for size in THUMBNAIL_SIZES:
+                            if size in thumbnails:
+                                image = thumbnails[size]['url'][23:-11]
+                                break
+                    else:
+                        image = ''
 
             else:
                 raise Exception("Couldn't parse link, bruh, what'd you do???")
