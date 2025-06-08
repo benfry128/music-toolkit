@@ -26,6 +26,21 @@ def search_spotify_tracks(sp_tracks, bridge_codes):
     return None
 
 
+def get_artist_object(artist_name):
+    cursor.execute('SELECT uri, source FROM artists WHERE name = %s', [artist_name])
+    results = cursor.fetchone()
+    if results:
+        print(f"Found a possible match in the db, source is {results[1]}")
+    artist_url = input(f"Channel ID or spotify URL for {artist_name}? ")
+    if artist_url:
+        artist_uri = artist_url[0 if artist_url[0] == 'U' else 32:]
+        artist_source = 'yt' if artist_url[0] == 'U' else 'sp'
+    else:
+        artist_uri = results[0]
+        artist_source = results[1]
+    return {'name': artist_name, 'uri': artist_uri, 'source': artist_source}
+
+
 THUMBNAIL_SIZES = ['maxres', 'standard', 'high', 'medium', 'default']
 
 # save album_urls for checking later
@@ -124,13 +139,12 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                             album_title = input("Album title? ")
                             album_uri = album_url[38:]
                             yt_api_type = 'playlists'
-                    corrected_artist = input("If the primary artist's name is wrong, put it in correctly here: ")
-                    artist_url = input("Channel ID or spotify URL of primary artist? ")
-                    artists = [{'name': corrected_artist if corrected_artist else lfm_artist, 'uri': artist_url[0 if artist_url[0] == 'U' else 32:], 'source': 'yt' if artist_url[0] == 'U' else 'sp'}]
+                    artists = []
+                    corrected_artist = input("If the primary artist's name is wrong, put it in correctly here: ") or lfm_artist
+                    artists.append(get_artist_object(corrected_artist))
                     additional_artist_name = input("Other artists? Add name here: ")
                     while additional_artist_name:
-                        artist_url = input("Channel ID or spotify URL of primary artist? ")  # @TODO: maybe convert this so it just takes the url and then converts the url just before adding it to the db
-                        artists.append({'name': corrected_artist if corrected_artist else lfm_artist, 'uri': artist_url[0 if artist_url[0] == 'U' else 32:], 'source': 'yt' if artist_url[0] == 'U' else 'sp'})
+                        artists.append(get_artist_object(additional_artist_name))
                         additional_artist_name = input("Other artists? Add name here: ")
 
                 if album_source == 'yt':
