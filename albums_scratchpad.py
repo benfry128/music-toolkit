@@ -3,8 +3,11 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from PIL import Image
+from dotenv import load_dotenv
+from pprint import pprint
 
-MYSQL_PWD = os.getenv('MYSQL_PWD')
+load_dotenv()
+MYSQL_PWD = os.getenv('RDS_MYSQL_PWD')
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 
@@ -17,18 +20,50 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
                                                retries=1)
 
 db = mysql.connector.connect(
-    host='localhost',
-    user='root',
+    host='albums.c4hk40ksa2ki.us-east-1.rds.amazonaws.com',
+    user='admin',
     password=MYSQL_PWD,
     database='albums'
 )
 
 cursor = db.cursor()
-cursor.execute('SELECT * FROM albums where id in (283, 297, 298, 424, 495, 578, 664);')
+# cursor.execute("SELECT * FROM albums where date_listened < '2022-09-15' order by ranking;")
 
-albums = cursor.fetchall()
+# albums = cursor.fetchall()
 
-for album in albums:
+x = open('asdf.csv')
+lines = x.readlines()
+
+for line in lines:
+    words = line[0:-1].split(',')
+    title = ','.join(words[0:-1])
+    d = words[-1]
+    if d:
+        print(title)
+        da = d.split('/')
+        dat = f'{da[2]}-{"0" if len(da[0]) == 1 else ""}{da[0]}-{"0" if len(da[1]) == 1 else ""}{da[1]}'
+        print(dat)
+
+        cursor.execute("select * from albums where title like %s", [title])
+        albums = cursor.fetchall()
+        if len(albums) == 1:
+            cursor.execute('update albums set date_listened = %s where id = %s;', [dat, albums[0][0]])
+        else:
+            id = input('ID? ')
+            cursor.execute('update albums set date_listened = %s where id = %s;', [dat, id])
+
+        db.commit()
+
+    # cursor.execute("SELECT * FROM albums ")
+
+# for album in albums:
+#     print(album[1])
+#     date_listened = input()
+
+#     if date_listened:
+#         cursor.execute('update albums set date_listened = %s', [date_listened])
+#         db.commit()
+
     # image_url = album[3]
 
     # response = requests.get(image_url, stream=True)
