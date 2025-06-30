@@ -102,7 +102,7 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                     uri = uri[:uri.index('&pp')]
                 data = requests.get(f'https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id='
                                     f'{uri[:uri.index('?')] if '?' in uri else uri}&key={YOUTUBE_API_KEY}').json()['items'][0]
-                runtime = iso_to_seconds(data['contentDetails']['duration'])
+                runtime = input('runtime? ') if '&' in uri else iso_to_seconds(data['contentDetails']['duration'])
                 snippet = data['snippet']
 
                 # siIvaGunner song
