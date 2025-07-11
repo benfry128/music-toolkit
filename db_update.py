@@ -16,6 +16,13 @@ SEARCH_PRIORITES = [
     lambda _: True,
 ]
 
+POKEMON_ARTIST_URIS = {
+    'Hitomi Sato': '6ogSS7KK79OuXaPIOcT2qW',
+    'Morikazu Aoki': '7aTFMiBdrwAWYhcQ3PWnAZ',
+    'Go Ichinose': '2XhZz8Jf1MrQqmdL5RuTlK',
+    'Junichi Masuda': '4VIuhf1E0e1gwkftD5VSXr',
+}
+
 
 def search_spotify_tracks(sp_tracks, bridge_codes):
     for prio in SEARCH_PRIORITES:
@@ -125,6 +132,29 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                     else:
                         album_uri = input("Input playlist url: ")[38:]
                     yt_api_type = 'playlists'
+                # from Pokemon DP OST Youtube video
+                elif data['id'] == 'XDg0T0hsJkc':
+                    title = lfm_title
+                    description = snippet['description']
+                    title_index = description.rfind(title)
+                    while title_index == -1:
+                        title = input('Title not found in description pls fix: ')
+                        title_index = description.rfind(title)
+                    this_line_start = description.rfind('\n', 0, title_index)
+                    this_timestamp = description[this_line_start + 1:description.find(' ', this_line_start)].split(':')
+                    this_seconds = int(this_timestamp[0]) * 3600 + int(this_timestamp[1]) * 60 + int(this_timestamp[2])
+                    next_line_start = description.find('\n', title_index)
+                    next_timestamp = description[next_line_start + 1:description.find(' ', next_line_start)].split(':')
+                    next_seconds = int(next_timestamp[0]) * 3600 + int(next_timestamp[1]) * 60 + int(next_timestamp[2])
+
+                    uri = f'{uri}?t={this_seconds}'
+                    runtime = next_seconds - this_seconds
+
+                    album_title = 'Pokémon Diamond and Pearl OST'
+                    artist_name = lfm_artist.split(';')[0]
+                    artists = [{'name': artist_name, 'uri': POKEMON_ARTIST_URIS[artist_name], 'source': 'sp'}]
+                    album_uri = 'XDg0T0hsJkc'
+                    yt_api_type = 'videos'
                 else:
                     corrected_title = input(f"If {lfm_title} is the wrong title, put it in correctly here: ")
                     title = corrected_title if corrected_title else lfm_title
