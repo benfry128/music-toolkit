@@ -20,9 +20,16 @@ SEARCH_PRIORITES = [
 def search_spotify_tracks(sp_tracks, bridge_codes):
     for prio in SEARCH_PRIORITES:
         for sp_track in sp_tracks:
-            if prio(sp_track) and (strip_str(sp_track['name'] + sp_track['artists'][0]['name'] + sp_track['album']['name']) in bridge_codes
-                                   or not input(f'Is this ok? {sp_track['name']} by {sp_track['artists'][0]['name']} off of {sp_track['album']['name']}')):
-                return sp_track
+            if prio(sp_track):
+                if strip_str(sp_track['name'] + sp_track['artists'][0]['name'] + sp_track['album']['name']) in bridge_codes:
+                    return sp_track
+                i = input(f'Is this ok? {sp_track['name']} by {sp_track['artists'][0]['name']} off of {sp_track['album']['name']}')
+                if not i:
+                    return sp_track
+                if i == 'b':
+                    break
+                if i == 's':
+                    return None
     return None
 
 
