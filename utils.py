@@ -26,14 +26,14 @@ def remove_apostrophe_and_percent(string):
     return re.sub("'|%", '', string).lower()
 
 
-def iso_to_seconds(iso):
-    m_index = iso.find('M')
-    if m_index == -1:
-        return int(iso[2:-1]) + 1
-    else:
-        minutes = int(iso[2:m_index])
-        seconds = int(iso[m_index+1:-1]) if m_index + 1 < len(iso) else 0
-        return minutes * 60 + seconds
+def iso_to_seconds(iso: str):
+    trimmed_iso = iso[2:-1]
+    split_iso = re.split('H|M', trimmed_iso)
+    seconds = int(split_iso[-1])
+    minutes = int(split_iso[-2]) if len(split_iso) > 1 else 0
+    hours = int(split_iso[-3]) if len(split_iso) > 2 else 0
+
+    return hours + 3600 + minutes * 60 + seconds + 1
 
 
 def spotipy_setup():
