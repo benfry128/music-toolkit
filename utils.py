@@ -33,7 +33,7 @@ def iso_to_seconds(iso: str):
     minutes = int(split_iso[-2]) if len(split_iso) > 1 else 0
     hours = int(split_iso[-3]) if len(split_iso) > 2 else 0
 
-    return hours + 3600 + minutes * 60 + seconds + 1
+    return hours * 3600 + minutes * 60 + seconds + 1
 
 
 def spotipy_setup():
