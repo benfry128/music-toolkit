@@ -5,7 +5,7 @@ import os
 
 
 def change_singles_to_albums(sp, db, cursor):
-    cursor.execute('SELECT id, name from albums where type = "single" and source = "sp" and id > 1673 order by id')
+    cursor.execute('SELECT id, name from albums where type = "single" and source = "sp" and id > 2177 order by id')
 
     albums = cursor.fetchall()
 
@@ -61,7 +61,7 @@ def change_singles_to_albums(sp, db, cursor):
                 cursor.execute('INSERT INTO albums (uri, name, type, source, image) VALUES (%s, %s, %s, %s, %s)', (album_uri, good_track['album']['name'], good_track['album']['album_type'], 'sp', good_track['album']['images'][0]['url'][24:]))
                 album_id = cursor.lastrowid
 
-            cursor.execute('update tracks set uri = %s, album_id = %s where id = %s', (url, album_id, single_track_id))
+            cursor.execute('update tracks set uri = %s, album_id = %s where id = %s', (uri, album_id, single_track_id))
             db.commit()
 
 
