@@ -5,7 +5,7 @@ import os
 
 
 def change_singles_to_albums(sp, db, cursor):
-    cursor.execute('SELECT id, name from albums where type = "single" and source = "sp" and id > 2177 order by id')
+    cursor.execute('SELECT id, name from albums where type = "single" and source = "sp" order by id')
 
     albums = cursor.fetchall()
 
@@ -172,31 +172,49 @@ def remove_unneeded_uri_info(db, cursor):
 
 # bad version of swap_out_clean_versions_of_albums above caused album uris to change without updating their constituent track uris, this code fixes it
 def fix_track_uris_to_match_album_uris(sp, cursor, db):
-    cursor.execute("SELECT tracks.id, tracks.uri, albums.uri, tracks.name FROM tracks join albums on tracks.album_id = albums.id where tracks.source = 'sp';")
+    cursor.execute("SELECT tracks.id, tracks.uri, albums.uri, tracks.name, albums.name, albums.id FROM tracks join albums on tracks.album_id = albums.id where tracks.source = 'sp';")
     data = cursor.fetchall()
 
-    sp_data = []
-
-    for i in range(0, len(data), 50):
-        sp_data.extend(sp.tracks([record[1] for record in data[i:i+50]])['tracks'])
-        print(len(sp_data))
-
-    if len(sp_data) != len(data):
-        input('stop it this is bad news bears')
-
-    for i in range(len(data)):
-        if data[i][2] != sp_data[i]['album']['id']:
-            print(data[i][3])
-            print(data[i][2])
-            print(sp_data[i]['album']['id'])
-            tracks = sp.album_tracks(data[i][2])
-            # print(tracks)
-            for track in tracks['items']:
-                if track['name'] == data[i][3]:
-                    print("ok found the song")
-                    cursor.execute('update tracks set uri = %s where id = %s', [track['id'], data[i][0]])
-                    db.commit()
-                    input(track['name'])
+    for album_id in [3194]:
+        print(album_id)
+        db_album_tracks = [t for t in data if t[5] == album_id]
+        if not db_album_tracks:
+            continue
+        sp_tracks = sp.tracks([record[1] for record in db_album_tracks])['tracks']
+        fine = True
+        for t in sp_tracks:
+            print(t)
+        for i in range(len(db_album_tracks)):
+            if db_album_tracks[i][2] != sp_tracks[i]['album']['id']:
+                fine = False
+        if fine:
+            continue
+        print([t[3] for t in db_album_tracks])
+        possible_albums = []
+        for t in db_album_tracks:
+            if t[2] not in possible_albums:
+                possible_albums.append(t[2])
+        for t in sp_tracks:
+            if t['album']['id'] not in possible_albums:
+                possible_albums.append(t['album']['id'])
+        for a in possible_albums:
+            print(f'https://open.spotify.com/album/{a}')
+        chosen_album_uri = possible_albums[int(input('Which?'))]
+        if not chosen_album_uri:
+            continue
+        chosen_album = sp.album(chosen_album_uri)
+        chosen_album_tracks = sp.album_tracks(chosen_album_uri)['items']
+        for t in db_album_tracks:
+            sp_track = [spt for spt in chosen_album_tracks if spt['name'] == t[3]]
+            if sp_track:
+                sp_uri = sp_track[0]['id']
+            else:
+                sp_uri = input(f'URI for {t[3]}')
+            sp_track = sp.track(sp_uri)
+            cursor.execute('update tracks set uri = %s, name = %s where id = %s', [sp_uri, sp_track['name'], t[0]])
+        cursor.execute('update albums set uri = %s, image = %s, type = %s where id = %s;',
+                       [chosen_album_uri, chosen_album['images'][0]['url'][24:], chosen_album['album_type'], album_id])
+        db.commit()
 
 
 def find_old_songs(sp, cursor, db):
