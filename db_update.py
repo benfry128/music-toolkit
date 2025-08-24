@@ -172,10 +172,15 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                             album_uri = sp_album['id']
                             album_source = 'sp'
                             image = sp_album['images'][0]['url'][24:]
-                        else:
+                        elif album_url[:38] == 'https://www.youtube.com/playlist?list=':
                             album_title = input("Album title? ")
                             album_uri = album_url[38:]
                             yt_api_type = 'playlists'
+                        else:
+                            album_uri = album_url
+                            album_source = 'other'
+                            album_title = input("Album title? ")
+
                     artists = []
                     corrected_artist = input("If the primary artist's name is wrong, put it in correctly here: ") or lfm_artist
                     artists.append(get_artist_object(corrected_artist))
@@ -184,6 +189,7 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                         artists.append(get_artist_object(additional_artist_name))
                         additional_artist_name = input("Other artists? Add name here: ")
 
+                image = None
                 if album_source == 'yt':
                     youtube_api_result = requests.get(f'https://www.googleapis.com/youtube/v3/{yt_api_type}?part=snippet&id={album_uri}&key={YOUTUBE_API_KEY}').json()['items']
                     if youtube_api_result: 
@@ -192,9 +198,9 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                             if size in thumbnails:
                                 image = thumbnails[size]['url'][23:-11]
                                 break
-                    else:
-                        image = ''
 
+                if not image:
+                    image = input("Input image url: ")
             else:
                 raise Exception("Couldn't parse link, bruh, what'd you do???")
 
