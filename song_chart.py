@@ -22,5 +22,4 @@ for i in range(1, 12):
 
     album_info = [row[0] for row in cursor.fetchall()]
 
-    utils.compile_square_image(6, 6, 640, album_info)
-    input("HI")
+    utils.compile_square_image(3, 4, 640, album_info, f'Month {i}')

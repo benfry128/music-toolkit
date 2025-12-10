@@ -168,7 +168,7 @@ def track_down_track(track, sp):
     return None
 
 
-def compile_square_image(up_down, left_right, size, image_urls):
+def compile_square_image(up_down, left_right, size, image_urls, file_name):
     bigImage = Image.new("RGB", (size * left_right, size * up_down))
 
     random.shuffle(image_urls)
@@ -178,13 +178,14 @@ def compile_square_image(up_down, left_right, size, image_urls):
         response = requests.get(url, stream=True)
         image = Image.open(io.BytesIO(response.content))
         image.thumbnail((size, size))
-        x = (id % left_right) * size
-        y = (id // left_right) * size
+        width, height = image.size
+        x = (id % left_right) * size + (size - width) // 2
+        y = (id // left_right) * size + (size - height) // 2
         bigImage.paste(image, (x, y))
         del image
         del response
 
-    bigImage.save(image_urls[0][-15:] + ".png")
+    bigImage.save(f"{file_name}.png")
     input('Get the image if you want it')
 
 

@@ -23,4 +23,4 @@ for uri in sorted_albums[:(to_a_side * to_a_side)]:
     image_urls.append(album['images'][0]['url'])
     print(f"Got URL for {album['name']}")
 
-utils.compile_square_image(to_a_side, to_a_side, 640, image_urls)
+utils.compile_square_image(to_a_side, to_a_side, 640, image_urls, 'playlist image heheh')
