@@ -1,13 +1,16 @@
 import utils
-from datetime import datetime
-from pprint import pprint
 import matplotlib.pyplot as plt
 
 sp = utils.spotipy_setup()
 
 (db, cursor) = utils.db_setup()
 
-cursor.execute('select count(*), popularity from scrobbles join tracks on track_id = id where utc < 1735711200 and popularity is not null group by track_id order by count(*) desc;')
+"""
+This is supposed to plot popularity vs my personal play count for various tracks, but it doesn't really show very much
+Also of note, popularity is not actually super accurate because it's related to the specific album it's on
+And in order to minimize the number of albums in the db, sometimes my uris point to specific deluxe versions of albums which are less popular than the normal version, resulting in way lower popularity scores for those tracks
+"""
+cursor.execute('select count(*), popularity from scrobbles join tracks on track_id = id where utc > 1735711200 and popularity is not null group by track_id order by count(*) desc;')
 
 xs_and_ys = cursor.fetchall()
 
