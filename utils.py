@@ -186,7 +186,6 @@ def compile_square_image(up_down, left_right, size, image_urls, file_name):
         del response
 
     bigImage.save(f"{file_name}.png")
-    input('Get the image if you want it')
 
 
 def sp_tracks(sp, cursor):
