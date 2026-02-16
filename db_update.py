@@ -7,7 +7,7 @@ sp = spotipy_setup()
 
 (db, cursor) = db_setup()
 
-SEARCH_PRIORITES = [
+SEARCH_PRIORITIES = [
     lambda track: 'sp' + track['album']['id'] in album_uri_matches,
     lambda track: track['explicit'] and track['album']['album_type'] == 'album',
     lambda track: album_explicit_and_few_artists(sp.album(track['album']['id'])) and track['album']['album_type'] == 'album',
@@ -25,7 +25,7 @@ POKEMON_ARTIST_URIS = {
 
 
 def search_spotify_tracks(sp_tracks, bridge_codes):
-    for prio in SEARCH_PRIORITES:
+    for prio in SEARCH_PRIORITIES:
         for sp_track in sp_tracks:
             if prio(sp_track):
                 if strip_str(sp_track['name'] + sp_track['artists'][0]['name'] + sp_track['album']['name']) in bridge_codes:
