@@ -225,53 +225,61 @@ def album_explicit_and_few_artists(sp_album):
 def merge_albums(album_ids, sp, db, cursor):
     # code to merge 2 albums
     album_dicts = []
+    all_db_tracks = []
 
     for album_id in album_ids:
-        cursor.execute('SELECT uri from albums WHERE id = %s', [album_id])
-        sp_tracks = sp.album_tracks(cursor.fetchall()[0][0])['items']
-        sp_track_uris = [track['id'] for track in sp_tracks]
-        album_dicts.append(dict(zip(sp_track_titles, sp_track_uris)))
-        cursor.execute('SELECT name FROM tracks WHERE album_id = %s', [album_id])
+        cursor.execute('SELECT uri, name from albums WHERE id = %s', [album_id])
+        db_album = cursor.fetchall()[0]
+        sp_tracks = sp.album_tracks(db_album[0])['items']
+        title = db_album[1]
+        cursor.execute('SELECT name, id FROM tracks WHERE album_id = %s', [album_id])
+        db_tracks = cursor.fetchall()
+        all_db_tracks.extend(db_tracks)
         album_dicts.append({
-            'db_tracks': [song[0] for song in cursor.fetchall()],
-            'sp_tracks': [track['name'] for track in sp_tracks],
-
+            'id': album_id,
+            'title': title,
+            'db_tracks': db_tracks,
+            'sp_uris_by_title': {track['name']: track['id'] for track in sp_tracks}
         })
 
-    for t in db_track_titles:
-        for ti in t:
-            print(ti)
-    input('Do you need to go and merge some tracks first????')
+    all_db_tracks.sort()
+    print('Full list of track titles:')
+    for db_track in all_db_tracks:
+        print(f'{db_track[0]} - {db_track[1]}')
 
-    for album_id, album_dict, s in zip(album_ids, album_dicts, db_track_titles):
-        print(f"Album_id: {album_id}")
-        print(f'We have {len(s)} tracks in the db related to this url')
+    while True:
+        merge_data = input('Merge tracks? Input as "[track_id_to_keep],[track_id_to_delete]"')
+        if not merge_data:
+            break
+        merge_targets = merge_data.split(',')
+        merge_tracks(merge_targets[0], merge_targets[1], db, cursor)
+
+    print('\nAlbum summaries:')
+
+    for album_dict in album_dicts:
+        print(f"\n{album_dict['title']} - {album_dict['id']}")
+        print(f'This album has {len(album_dict['db_tracks'])} db tracks')
         good = True
-        for title_set in titles:
-            for title in title_set:
-                if title not in album_dict:
-                    print(f"couldn't find {title}")
-                    good = False
-                    break
-            if not good:
-                break
+        for db_track in all_db_tracks:
+            if db_track[0] not in album_dict['sp_uris_by_title']:
+                print(f"Couldn't find {db_track[0]}")
+                good = False
         if good:
-            print("OK THAT'S GOOD!")
-        else:
-            print("NAH DON'T USE THIS ONE PROB")
+            print("Found all tracks")
 
-    i = input("Ok you want to do it? Choose the index of the album you want to keep, or press enter to skip")
-    if i:
-        index = int(i)
-        good_id = ids[index]
-        album_dict = album_dicts[index]
-        del ids[index]
-        del titles[index]
-        for (id, title_set) in zip(ids, titles):
-            for title in title_set:
-                print(f'{good_id}, {album_dict[title]}, {title}, {id}')
-                cursor.execute('UPDATE tracks SET album_id = %s, uri = %s where name = %s and album_id = %s', (good_id, album_dict[title], title, id))
-                db.commit()
+    i = input("\nContinue merge? Choose the index of the album to keep, or enter to skip:")
+    if not i:
+        return
+
+    index = int(i)
+    good_album_dict = album_dicts[index]
+    for album_dict in album_dicts:
+        if album_dict['id'] == good_album_dict['id']:
+            continue
+        for track in album_dict['db_tracks']:
+            print(f'Updating {track[0]}')
+            cursor.execute('UPDATE tracks SET album_id = %s, uri = %s where id = %s', (good_album_dict['id'], good_album_dict['sp_uris_by_title'][track[0]], track[1]))
+            db.commit()
 
 
 def compile_circle_image(size, image_urls_and_amounts, total):
