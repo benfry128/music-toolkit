@@ -49,11 +49,11 @@ for track, artist in cursor.fetchall():
             print(f'Skipping {track} by {artist}')
         continue
 
-    print(f"Ok let's talk about {track} by {artist}")
+    print(f"Possible duplicate track: {track} by {artist}\nOptions:")
     for track_id, album in dupe_records:
-        print(f"Id {track_id} off the {album} album")
+        print(f"Id {track_id} from album '{album}'")
 
-    keep_id = input("Which one would you like to keep? (0-indexed, press enter to change nothing")
+    keep_id = input("Which one would you like to keep? (0-indexed, enter to skip")
     if keep_id:
         good_track = dupe_records[int(keep_id)][0]
         del dupe_records[int(keep_id)]
