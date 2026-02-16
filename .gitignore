@@ -2,4 +2,4 @@
 .cache
 __pycache__
 .idea
-metadata.json
+db_sanitize_metadata.json
