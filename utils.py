@@ -222,32 +222,29 @@ def album_explicit_and_few_artists(sp_album):
     return tracks_explicit and three_or_fewer_artists
 
 
-def merge_albums(uris, sp, db, cursor):
+def merge_albums(album_ids, sp, db, cursor):
     # code to merge 2 albums
-
-    titles = []
     album_dicts = []
-    ids = []
 
-    for uri in uris:
-        cursor.execute('SELECT id from albums where uri = %s', [uri])
-        ids.append(cursor.fetchall()[0][0])
+    for album_id in album_ids:
+        cursor.execute('SELECT uri from albums WHERE id = %s', [album_id])
+        sp_tracks = sp.album_tracks(cursor.fetchall()[0][0])['items']
+        sp_track_uris = [track['id'] for track in sp_tracks]
+        album_dicts.append(dict(zip(sp_track_titles, sp_track_uris)))
+        cursor.execute('SELECT name FROM tracks WHERE album_id = %s', [album_id])
+        album_dicts.append({
+            'db_tracks': [song[0] for song in cursor.fetchall()],
+            'sp_tracks': [track['name'] for track in sp_tracks],
 
-    for uri in uris:
-        cursor.execute('SELECT * FROM tracks inner join albums on tracks.album_id = albums.id WHERE albums.uri = %s', [uri])
-        titles.append([song[1] for song in cursor.fetchall()])
-        tracks = sp.album_tracks(uri)['items']
-        track_titles = [track['name'] for track in tracks]
-        track_uris = [track['id'] for track in tracks]
-        album_dicts.append(dict(zip(track_titles, track_uris)))
+        })
 
-    for t in titles:
+    for t in db_track_titles:
         for ti in t:
             print(ti)
     input('Do you need to go and merge some tracks first????')
 
-    for uri, album_dict, s in zip(uris, album_dicts, titles):
-        print(f"Let's see about this url: {uri}")
+    for album_id, album_dict, s in zip(album_ids, album_dicts, db_track_titles):
+        print(f"Album_id: {album_id}")
         print(f'We have {len(s)} tracks in the db related to this url')
         good = True
         for title_set in titles:
