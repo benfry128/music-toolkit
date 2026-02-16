@@ -1,4 +1,5 @@
 import utils
+import json
 
 (db, cursor) = utils.db_setup()
 
@@ -31,14 +32,25 @@ for dupe_check in dupe_checks:
         cursor.execute(f'DELETE FROM scrobbles WHERE utc in ({str(dupes)[1:-1]})')
         db.commit()
 
+with open('db_sanitize_metadata.json', encoding='utf-8') as f:
+    text = f.read()
+
+d = json.loads(text)
+
+unrelated_track_ids = d['non_dupe_track_ids']
+
 # gotta check for dupes in tracks as well
-cursor.execute('SELECT track, artist FROM all_urls WHERE NOT artist_id in (58, 1107) GROUP BY track, artist HAVING COUNT(*) > 1;')
+cursor.execute('SELECT track, artist FROM all_urls GROUP BY track, artist HAVING COUNT(*) > 1;')
 for track, artist in cursor.fetchall():
-    print(f"Ok let's talk about {track} by {artist}")
     cursor.execute('SELECT track_id, album FROM all_urls WHERE track = %s AND artist = %s', (track, artist))
     dupe_records = cursor.fetchall()
-    for id, album in dupe_records:
-        print(f"This version is off the {album} album")
+    if all([record[0] in unrelated_track_ids for record in dupe_records]):
+        print(f'Skipping {track} by {artist}')
+        continue
+
+    print(f"Ok let's talk about {track} by {artist}")
+    for track_id, album in dupe_records:
+        print(f"Id {track_id} off the {album} album")
 
     keep_id = input("Which one would you like to keep? (0-indexed, press enter to change nothing")
     if keep_id:
@@ -46,3 +58,13 @@ for track, artist in cursor.fetchall():
         del dupe_records[int(keep_id)]
         for dupe_record in dupe_records:
             utils.merge_tracks(good_track, dupe_record[0], db, cursor)
+        continue
+
+    for track_id, _ in dupe_records:
+        if track_id not in unrelated_track_ids:
+            unrelated_track_ids.append(track_id)
+
+d['non_dupe_track_ids'] = unrelated_track_ids
+
+with open("db_sanitize_metadata.json", 'w', encoding='utf-8') as f:
+    f.write(json.dumps(d, indent=4))
