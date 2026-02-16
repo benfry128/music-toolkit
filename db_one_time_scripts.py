@@ -123,8 +123,6 @@ def add_album_art(sp, db, cursor):
     cursor.execute('SELECT id, url FROM albums WHERE url like "%youtube.com/playlist%"')
     rows = cursor.fetchall()
 
-    THUMBNAIL_SIZES = ['maxres', 'standard', 'high', 'medium', 'default']
-
     for row in rows:
         db_id = row[0]
         yt_id = row[1][38:]
