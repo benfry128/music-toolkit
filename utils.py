@@ -188,7 +188,7 @@ def compile_square_image(up_down, left_right, size, image_urls, file_name):
     bigImage.save(f"{file_name}.png")
 
 
-def sp_tracks(sp, cursor):
+def get_sp_tracks(sp, cursor):
     cursor.execute("select uri from tracks where source = 'sp';")
 
     tracks = [row[0] for row in cursor.fetchall()]

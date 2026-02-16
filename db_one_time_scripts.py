@@ -86,7 +86,7 @@ def swap_out_clean_versions_of_albums(sp, db, cursor):
 
 
 def add_popularity_scores(sp, db, cursor):
-    sp_tracks = utils.sp_tracks(sp, cursor)
+    sp_tracks = utils.get_sp_tracks(sp, cursor)
 
     for track in sp_tracks:
         print(f'{track['name']}\n{track['popularity']}')
