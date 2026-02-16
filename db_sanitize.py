@@ -1,9 +1,9 @@
 import utils
 import json
 
-(db, cursor) = utils.db_setup()
+VERBOSE = False
 
-print('checking for duplicates now')
+(db, cursor) = utils.db_setup()
 
 dupe_checks = ['SELECT utc FROM '
                '(SELECT utc, track_id, '
@@ -21,13 +21,13 @@ dupe_checks = ['SELECT utc FROM '
                'WHERE (idBefore = track_id OR idAfter = track_id) AND timeAfter < 60 AND timeAfter > 0;'
                ]
 
+print('Checking for duplicate scrobbles...')
 for dupe_check in dupe_checks:
     cursor.execute(dupe_check)
     dupes = [record[0] for record in cursor.fetchall()]
     if dupes:
-        print(dupes)
-        if not input(f'About to delete {len(dupes)} records, you good with that?') == '':
-            print("SKIPPED")
+        if input(f'Delete {len(dupes)} duplicate scrobbles? Type anything to skip'):
+            print("Skipped")
             continue
         cursor.execute(f'DELETE FROM scrobbles WHERE utc in ({str(dupes)[1:-1]})')
         db.commit()
@@ -39,13 +39,14 @@ d = json.loads(text)
 
 unrelated_track_ids = d['non_dupe_track_ids']
 
-# gotta check for dupes in tracks as well
+print('Checking for duplicate tracks...')
 cursor.execute('SELECT track, artist FROM all_urls GROUP BY track, artist HAVING COUNT(*) > 1;')
 for track, artist in cursor.fetchall():
     cursor.execute('SELECT track_id, album FROM all_urls WHERE track = %s AND artist = %s', (track, artist))
     dupe_records = cursor.fetchall()
     if all([record[0] in unrelated_track_ids for record in dupe_records]):
-        print(f'Skipping {track} by {artist}')
+        if VERBOSE:
+            print(f'Skipping {track} by {artist}')
         continue
 
     print(f"Ok let's talk about {track} by {artist}")
