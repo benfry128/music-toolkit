@@ -103,7 +103,7 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                 print(f"{sp_track['name']} by {sp_track['artists'][0]['name']} off {sp_track['album']['name']}. url is {sp_track['external_urls']['spotify']}")
             url = input('\nIf you can find the song, enter the url. If not, press enter. ')
             if not url:
-                return None
+                return
             elif url[0:30] == 'https://open.spotify.com/track':
                 good_track = sp.track(url)
             elif url[0:32] == 'https://www.youtube.com/watch?v=' or url[0:17] == 'https://youtu.be/':
@@ -118,6 +118,7 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                                     f'{uri[:uri.index('?')] if '?' in uri else uri}&key={YOUTUBE_API_KEY}').json()['items'][0]
                 runtime = input('runtime? ') if '&' in uri else iso_to_seconds(data['contentDetails']['duration'])
                 snippet = data['snippet']
+                image = None
 
                 # siIvaGunner song
                 if snippet['channelId'] == 'UC9ecwl3FTG66jIKA9JRDtmg':
@@ -189,7 +190,6 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
                         artists.append(get_artist_object(additional_artist_name))
                         additional_artist_name = input("Other artists? Add name here: ")
 
-                image = None
                 if album_source == 'yt':
                     youtube_api_result = requests.get(f'https://www.googleapis.com/youtube/v3/{yt_api_type}?part=snippet&id={album_uri}&key={YOUTUBE_API_KEY}').json()['items']
                     if youtube_api_result: 
