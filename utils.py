@@ -54,7 +54,7 @@ def db_setup():
         database='spotify_toolkit'
     )
     cursor = db.cursor()
-    return (db, cursor)
+    return db, cursor
 
 
 def merge_tracks(good_track, bad_track, db, cursor):
