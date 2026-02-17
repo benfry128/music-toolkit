@@ -5,20 +5,20 @@ VERBOSE = False
 
 (db, cursor) = utils.db_setup()
 
-dupe_checks = ['SELECT utc FROM '
-               '(SELECT utc, track_id, '
-               'LEAD(track_id, 1, 0) OVER (ORDER BY utc) AS idAfter, '
-               'LAG(track_id, 1, 0) OVER (ORDER BY utc) AS idBefore, '
-               '(LAG(utc, 1, 0) OVER (ORDER BY utc) - utc) * -1 AS timeBefore '
-               'FROM scrobbles ORDER BY utc) t '
-               'WHERE (idBefore = track_id OR idAfter = track_id) AND timeBefore < 60 AND timeBefore > 0;',
-               'SELECT utc FROM '
-               '(SELECT utc, track_id, '
-               'LEAD(track_id, 1, 0) OVER (ORDER BY utc) AS idAfter, '
-               'LAG(track_id, 1, 0) OVER (ORDER BY utc) AS idBefore, '
-               'LEAD(utc, 1, 0) OVER (ORDER BY utc) - utc AS timeAfter '
-               'FROM scrobbles ORDER BY utc) t '
-               'WHERE (idBefore = track_id OR idAfter = track_id) AND timeAfter < 60 AND timeAfter > 0;'
+dupe_checks = ['''SELECT utc FROM
+               (SELECT utc, track_id, 
+               LEAD(track_id, 1, 0) OVER (ORDER BY utc) AS idAfter, 
+               LAG(track_id, 1, 0) OVER (ORDER BY utc) AS idBefore, 
+               (LAG(utc, 1, 0) OVER (ORDER BY utc) - utc) * -1 AS timeBefore 
+               FROM scrobbles ORDER BY utc) t 
+               WHERE (idBefore = track_id OR idAfter = track_id) AND timeBefore < 60 AND timeBefore > 0;''',
+               '''SELECT utc FROM 
+               (SELECT utc, track_id, 
+               LEAD(track_id, 1, 0) OVER (ORDER BY utc) AS idAfter, 
+               LAG(track_id, 1, 0) OVER (ORDER BY utc) AS idBefore, 
+               LEAD(utc, 1, 0) OVER (ORDER BY utc) - utc AS timeAfter 
+               FROM scrobbles ORDER BY utc) t 
+               WHERE (idBefore = track_id OR idAfter = track_id) AND timeAfter < 60 AND timeAfter > 0;'''
                ]
 
 print('Checking for duplicate scrobbles...')
