@@ -82,6 +82,8 @@ updated_non_dupe_album_ids = db_sanitize_metadata['non_dupe_album_ids']
 
 for album1_id, album2_id, artist, album1_name, album2_name, album1_uri, album2_uri in cursor.fetchall():
     if album1_id in db_sanitize_metadata['non_dupe_album_ids'] and album2_id in db_sanitize_metadata['non_dupe_album_ids']:
+        if VERBOSE:
+            print(f'\nSkipping {album1_name} and {album2_name} from {artist}')
         continue
     print(f'\nPossible duplicate albums from {artist}: {album1_name} and {album2_name}.\nUris are {album1_uri} and {album2_uri}')
 
@@ -93,6 +95,7 @@ for album1_id, album2_id, artist, album1_name, album2_name, album1_uri, album2_u
             updated_non_dupe_album_ids.append(album2_id)
         continue
 
+    print()
     utils.merge_albums([album1_id, album2_id], sp, db, cursor)
 
 updated_non_dupe_album_ids.sort()
