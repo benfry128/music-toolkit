@@ -2,6 +2,7 @@ import utils
 import json
 
 VERBOSE = False
+RECHECK = False
 
 sp = utils.spotipy_setup()
 
@@ -101,7 +102,7 @@ with open('db_sanitize_metadata.json', encoding='utf-8') as f:
 
 db_sanitize_metadata = json.loads(text)
 
-non_dupe_track_ids = db_sanitize_metadata['non_dupe_track_ids']
+non_dupe_track_ids = [] if RECHECK else db_sanitize_metadata['non_dupe_track_ids']
 
 print('Checking for duplicate tracks...')
 cursor.execute('SELECT track, artist FROM all_urls GROUP BY track, artist HAVING COUNT(*) > 1;')
@@ -140,7 +141,7 @@ cursor.execute('''select a1.id, a2.id, max(ar1.name), a1.name,  a2.name, a1.uri,
     having max(ar1.name) = max(ar2.name)
     order by a1.name;''')
 
-updated_non_dupe_album_ids = db_sanitize_metadata['non_dupe_album_ids']
+updated_non_dupe_album_ids = [] if RECHECK else db_sanitize_metadata['non_dupe_album_ids']
 
 for album1_id, album2_id, artist, album1_name, album2_name, album1_uri, album2_uri in cursor.fetchall():
     if album1_id in db_sanitize_metadata['non_dupe_album_ids'] and album2_id in db_sanitize_metadata['non_dupe_album_ids']:
@@ -163,7 +164,7 @@ for album1_id, album2_id, artist, album1_name, album2_name, album1_uri, album2_u
 updated_non_dupe_album_ids.sort()
 db_sanitize_metadata['non_dupe_album_ids'] = updated_non_dupe_album_ids
 
-db_sanitize_metadata['album_start_id'] = change_singles_to_albums(db_sanitize_metadata['album_start_id'])
+db_sanitize_metadata['album_start_id'] = change_singles_to_albums(0 if RECHECK else db_sanitize_metadata['album_start_id'])
 
 with open('db_sanitize_metadata.json', 'w', encoding='utf-8') as f:
     f.write(json.dumps(db_sanitize_metadata, indent=4))
