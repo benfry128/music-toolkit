@@ -7,6 +7,68 @@ sp = utils.spotipy_setup()
 
 (db, cursor) = utils.db_setup()
 
+def change_singles_to_albums(album_start_id):
+    cursor.execute('SELECT id, name from albums where type = "single" and source = "sp" and id > %s order by id', [album_start_id])
+
+    albums = cursor.fetchall()
+
+    for single_id, single_name in albums:
+        print(single_id)
+        print(single_name)
+        cursor.execute('select track, artist, track_id from all_urls where album_id = %s', [single_id])
+        tracks = cursor.fetchall()
+        for (single_track, single_artist, single_track_id) in tracks:
+            print(f'track: {single_track} artist: {single_artist}\n')
+            possible_tracks = sp.search(q=f'track:{single_track} artist:{single_artist}', type='track', limit=10)['tracks']['items']
+            skip = True
+            for track in possible_tracks:
+                if track['name'] == single_track:
+                    if track['album']['album_type'] == 'album':
+                        print(f"Track: {track['name']} Album {track['album']['name']}. url is {track['external_urls']['spotify']}")
+                        print("This one is labeled as an album")
+                        skip = False
+
+                    if track['album']['name'] != single_name:
+                        cursor.execute('select id from albums where uri = %s', [track['album']['id']])
+                        if cursor.fetchall():
+                            print(f"Track: {track['name']}. Album {track['album']['name']}. url is {track['external_urls']['spotify']}")
+                            print("WE GOT A HIT IN THE DB THIS IS GOOD")
+                            skip = False
+
+            if skip:
+                continue
+
+            url = input('Which url?')
+
+            if not url:
+                continue
+
+            good_track = sp.track(url)
+            print(good_track)
+            uri = good_track['id']
+
+            cursor.execute('select id from tracks where uri = %s', [uri])
+            old_record = cursor.fetchone()
+            if old_record:
+                utils.merge_tracks(old_record[0], single_track_id, db, cursor)
+                continue
+
+            album_uri = good_track['album']['id']
+
+            cursor.execute('select id from albums where uri = %s', [album_uri])
+            old_album = cursor.fetchone()
+            if old_album:
+                album_id = old_album[0]
+            else:
+                input(f"about to put in a new album: {good_track['album']['name']}")
+                cursor.execute('INSERT INTO albums (uri, name, type, source, image) VALUES (%s, %s, %s, %s, %s)', (album_uri, good_track['album']['name'], good_track['album']['album_type'], 'sp', good_track['album']['images'][0]['url'][24:]))
+                album_id = cursor.lastrowid
+
+            cursor.execute('update tracks set uri = %s, album_id = %s where id = %s', (uri, album_id, single_track_id))
+            db.commit()
+
+    return albums[-1][0]
+
 dupe_checks = ['''SELECT utc FROM
                (SELECT utc, track_id, 
                LEAD(track_id, 1, 0) OVER (ORDER BY utc) AS idAfter, 
