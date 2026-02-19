@@ -168,3 +168,6 @@ db_sanitize_metadata['album_start_id'] = change_singles_to_albums(0 if RECHECK e
 
 with open('db_sanitize_metadata.json', 'w', encoding='utf-8') as f:
     f.write(json.dumps(db_sanitize_metadata, indent=4))
+
+cursor.execute('delete from albums where (select count(*) from tracks where album_id = albums.id) = 0;')
+db.commit()
