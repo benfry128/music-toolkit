@@ -163,5 +163,7 @@ for album1_id, album2_id, artist, album1_name, album2_name, album1_uri, album2_u
 updated_non_dupe_album_ids.sort()
 db_sanitize_metadata['non_dupe_album_ids'] = updated_non_dupe_album_ids
 
-with open("db_sanitize_metadata.json", 'w', encoding='utf-8') as f:
+db_sanitize_metadata['album_start_id'] = change_singles_to_albums(db_sanitize_metadata['album_start_id'])
+
+with open('db_sanitize_metadata.json', 'w', encoding='utf-8') as f:
     f.write(json.dumps(db_sanitize_metadata, indent=4))
