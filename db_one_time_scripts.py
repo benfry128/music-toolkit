@@ -24,16 +24,6 @@ def swap_out_clean_versions_of_albums(sp, db, cursor):
                             db.commit()
 
 
-def add_popularity_scores(sp, db, cursor):
-    sp_tracks = utils.get_sp_tracks(sp, cursor)
-
-    for track in sp_tracks:
-        print(f'{track['name']}\n{track['popularity']}')
-        cursor.execute('update tracks set popularity = %s where uri = %s', [track['popularity'], track['id']])
-
-    db.commit()
-
-
 def add_album_art(sp, db, cursor):
     albums = utils.sp_albums(sp, cursor)
 
