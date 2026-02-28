@@ -17,6 +17,7 @@ playlist_ids = [
 ]
 
 for old_id, new_id in playlist_ids:
+    # @TODO: 2026-03 API changes
     playlist = sp.playlist(new_id)
     print(playlist['name'])
 
@@ -46,9 +47,11 @@ for old_id, new_id in playlist_ids:
     front_front.extend(back_of_list)
 
     if front_front:
+        # @TODO: 2026-03 API changes
         sp.playlist_replace_items(new_id, front_front[0:100])
         offset = 100
         while offset < len(front_front):
+            # @TODO: 2026-03 API changes
             sp.playlist_add_items(new_id, front_front[offset:offset+100])
             offset += 100
             print(f'readding tracks... offset is {offset}')
