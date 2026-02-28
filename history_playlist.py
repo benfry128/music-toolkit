@@ -24,7 +24,7 @@ sp_tracks = []
 
 print(start.date())
 
-a_to_z_playlist = sp.user_playlist_create(MY_USER_ID, f'Listened from {start} to {end}')
+history_playlist = sp.user_playlist_create(MY_USER_ID, f'Listened from {start} to {end}')
 
 for i in range(0, len(uris), 50):
-    sp.user_playlist_add_tracks(MY_USER_ID, a_to_z_playlist['uri'], uris[i:i + 50])
+    sp.user_playlist_add_tracks(MY_USER_ID, history_playlist['uri'], uris[i:i + 50])
