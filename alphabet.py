@@ -78,6 +78,7 @@ if all_letters or input("Playlist will not be complete, continue? (y/n) ") == 'y
         if uris:
             final_uris.append(uris[random.randint(0, len(uris) - 1)])
 
+    # @TODO 2026-03 API changes
     a_to_z_playlist = sp.user_playlist_create(MY_USER_ID, f'A to Z - {sp.user(USER_ID)['display_name']} - {datetime.now(tz=timezone.utc).strftime('%m/%d/%Y')}')
 
     result = sp.user_playlist_add_tracks(MY_USER_ID, a_to_z_playlist['uri'], final_uris)

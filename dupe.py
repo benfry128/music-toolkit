@@ -14,6 +14,7 @@ for old_id, new_id in playlist_ids:
 
     random.shuffle(uris)
 
+    # @TODO: 2026-03 API changes
     sp.playlist_replace_items(new_id, uris[0:100])
     offset = 100
     while offset < len(uris):
