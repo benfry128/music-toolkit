@@ -104,7 +104,7 @@ def get_recent_tracks(days_ago_start, days_ago_end, cursor):
     now = int(datetime.now().timestamp())
     return get_scrobbles_from_date_range(now - days_ago_start * 86400, now - days_ago_end * 86400, cursor)
 
-
+# @TODO: 2026-03 api changes
 def get_all_playlists(user_id, sp):
     total_playlists = sp.user_playlists(user_id)['total']
 
@@ -154,19 +154,6 @@ def compile_square_image(up_down, left_right, size, image_urls, file_name):
         del response
 
     bigImage.save(f"{file_name}.png")
-
-
-def get_sp_tracks(sp, cursor):
-    cursor.execute("select uri from tracks where source = 'sp';")
-
-    tracks = [row[0] for row in cursor.fetchall()]
-    sp_tracks = []
-
-    for i in range(0, len(tracks), 50):
-        sp_tracks.extend(sp.tracks(tracks[i:i+50])['tracks'])
-        print(len(sp_tracks))
-
-    return sp_tracks
 
 
 def album_explicit_and_few_artists(sp_album):
