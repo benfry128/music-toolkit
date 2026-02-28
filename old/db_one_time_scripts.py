@@ -178,10 +178,3 @@ def find_old_songs(sp, cursor, db):
         if x:
             cursor.execute('update tracks set old = 1 where id = %s;', [id])
             db.commit()
-
-
-sp = utils.spotipy_setup()
-
-db, cursor = utils.db_setup()
-
-find_old_songs(sp, cursor, db)
