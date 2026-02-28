@@ -1,8 +1,6 @@
 import utils
 from datetime import datetime
 
-sp = utils.spotipy_setup()
-
 (db, cursor) = utils.db_setup()
 
 year = 2025
