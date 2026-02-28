@@ -127,7 +127,7 @@ def get_all_tracks(playlist_id, sp, find_good_tracks=True):
     tracks = result['items']
     while offset < total_tracks:
         print(f"Getting tracks {offset}-{offset+49}")
-        tracks.extend(sp.playlist_tracks(playlist_id, additional_types=('track',), offset=offset)['items'])
+        tracks.extend(sp.playlist_items(playlist_id, additional_types=('track',), offset=offset)['items'])
         offset += 50
 
     print(f'Retrieved {len(tracks)}')
