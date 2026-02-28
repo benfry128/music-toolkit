@@ -118,54 +118,22 @@ def get_all_playlists(user_id, sp):
 
 
 def get_all_tracks(playlist_id, sp, find_good_tracks=True):
-    print("Getting tracks 0-99")
-    result = sp.playlist_tracks(playlist_id)
+    print("Getting tracks 0-49")
+    result = sp.playlist_items(playlist_id, additional_types=('track',))
+
     total_tracks = result['total']
 
-    offset = 100
+    offset = 50
     tracks = result['items']
     while offset < total_tracks:
-        print(f"Getting tracks {offset}-{offset+99}")
-        tracks.extend(sp.playlist_tracks(playlist_id, offset=offset)['items'])
-        offset += 100
+        print(f"Getting tracks {offset}-{offset+49}")
+        tracks.extend(sp.playlist_tracks(playlist_id, additional_types=('track',), offset=offset)['items'])
+        offset += 50
 
     print(f'Retrieved {len(tracks)}')
 
-    if not find_good_tracks:
-        return tracks
-
-    print('Now digging through to find good versions')
-    real_tracks = []
-    for track in tracks:
-        if not track['is_local'] and track['track'] and track['track']['type'] == 'track':
-            if 'US' in track['track']['available_markets']:
-                real_tracks.append(track['track'])
-            else:
-                alt = track_down_track(track['track'], sp)
-                if alt:
-                    real_tracks.append(alt)
-
-    print(f'Finished, retrieved {len(real_tracks)} tracks in the end')
-    return real_tracks
-
-
-def track_down_track(track, sp):
-    goodName = track['name'].lower()
-    goodArtist = track['artists'][0]['name'].lower()
-    isrc = track['external_ids']['isrc']
-
-    good_tracks = sp.search(q=f'isrc:{isrc}', type='track')['tracks']['items']
-    if good_tracks:
-        return good_tracks[0]
-
-    good_tracks = sp.search(q=f'track:{goodName} artist:{goodArtist}', type='track')['tracks']['items']
-    if good_tracks:
-        newName = good_tracks[0]['name'].lower()
-        newArtist = good_tracks[0]['artists'][0]['name'].lower()
-
-        if goodName == newName and goodArtist == newArtist:
-            return good_tracks[0]
-    return None
+    # @TODO: Check if this track type check is necessary now that additional_types=('track',) is above
+    return [t['track'] for t in tracks if not t['is_local'] and t['track'] and t['track']['type'] == 'track'] if find_good_tracks else tracks
 
 
 def compile_square_image(up_down, left_right, size, image_urls, file_name):
