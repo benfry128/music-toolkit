@@ -5,9 +5,11 @@ import os
 
 
 def swap_out_clean_versions_of_albums(sp, db, cursor):
-    sp_albums = utils.sp_albums(sp, cursor)
+    cursor.execute("SELECT uri FROM albums where source = 'sp' and id < 20;")
+    album_uris = [row[0] for row in cursor.fetchall()]
 
-    for sp_album in sp_albums:
+    for album_uri in album_uris:
+        sp_album = sp.album(album_uri)
         if not utils.album_explicit_and_few_artists(sp_album):
             print(f'Album {sp_album['name']} is clean')
             title = sp_album['name']
@@ -25,10 +27,12 @@ def swap_out_clean_versions_of_albums(sp, db, cursor):
 
 
 def add_album_art(sp, db, cursor):
-    albums = utils.sp_albums(sp, cursor)
+    cursor.execute("SELECT uri FROM albums where source = 'sp' and id < 20;")
+    album_uris = [row[0] for row in cursor.fetchall()]
 
-    for album in albums:
-        cursor.execute('update albums set image = %s where uri = %s', [album['images'][0]['url'], album['id']])
+    for album_uri in album_uris:
+        sp_album = sp.album(album_uri)
+        cursor.execute('update albums set image = %s where uri = %s', [sp_album['images'][0]['url'], sp_album['id']])
 
     db.commit()
 

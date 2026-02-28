@@ -169,19 +169,6 @@ def get_sp_tracks(sp, cursor):
     return sp_tracks
 
 
-def sp_albums(sp, cursor):
-    cursor.execute("SELECT uri FROM albums where source = 'sp' and id < 20;")
-
-    albums = [row[0] for row in cursor.fetchall()]
-    sp_albums = []
-
-    for i in range(0, len(albums), 20):
-        sp_albums.extend(sp.albums(albums[i:i+20])['albums'])
-        print(f'{len(sp_albums)} albums loaded from Spotify so far')
-
-    return sp_albums
-
-
 def album_explicit_and_few_artists(sp_album):
     tracks = sp_album['tracks']['items']
     tracks_explicit = bool([1 for track in tracks if track['explicit']])
