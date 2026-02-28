@@ -5,17 +5,15 @@ from pprint import pprint
 sp = utils.spotipy_setup()
 
 MY_USER_ID = os.getenv('ME_SPOTIFY_ID')
-USER_ID_INPUT = input('User id? ')
-USER_ID = MY_USER_ID if USER_ID_INPUT == 'mine' else USER_ID_INPUT
 
-playlists = utils.get_all_playlists(USER_ID, sp)
+playlists = utils.get_all_playlists(MY_USER_ID, sp)
 
 skip_playlists = ['Bangers', 'Vibes', 'Thonkers', 'Classics - Hi', 'Classics - Lo', 'To Listen', ]
 
 artists = {}
 
 for playlist in playlists:
-    if playlist['collaborative'] or not playlist['owner']['id'] == USER_ID or playlist['name'] in skip_playlists:
+    if playlist['collaborative'] or not playlist['owner']['id'] == MY_USER_ID or playlist['name'] in skip_playlists:
         print(f"{playlist['name']} EXCLUDED")
         continue
     analyze = input(f'Analyze playlist "{playlist['name']}"? (y/n/s to skip all) ')
