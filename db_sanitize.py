@@ -150,7 +150,7 @@ for album1_id, album2_id, artist, album1_name, album2_name, album1_uri, album2_u
         continue
     print(f'\nPossible duplicate albums from {artist}: {album1_name} and {album2_name}.\nUris are {album1_uri} and {album2_uri}')
 
-    should_merge = input('Should these be merged?')
+    should_merge = input('Should these be merged? No input if no, input if yes.')
     if not should_merge:
         if album1_id not in updated_non_dupe_album_ids:
             updated_non_dupe_album_ids.append(album1_id)
