@@ -153,7 +153,7 @@ def process_track(utc, lfm_artist, lfm_album, lfm_title, db, cursor, sp):
 
                     album_title = 'Pokémon Diamond and Pearl OST'
                     artist_name = lfm_artist.split(';')[0]
-                    artists = [{'name': artist_name, 'uri': POKEMON_ARTIST_URIS[artist_name], 'source': 'sp'}]
+                    artists = [{'name': artist_name, 'uri': POKEMON_ARTIST_URIS[artist_name] if artist_name in POKEMON_ARTIST_URIS else '', 'source': 'sp'}]
                     album_uri = 'XDg0T0hsJkc'
                     yt_api_type = 'videos'
                 else:
