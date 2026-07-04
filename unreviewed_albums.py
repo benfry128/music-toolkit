@@ -16,21 +16,37 @@ albums_db = mysql.connector.connect(
 )
 albums_cursor = albums_db.cursor()
 
-albums_cursor.execute('select spotify_id from albums where date_listened is not null;')
+albums_cursor.execute('select spotify_id, title from albums where date_listened is not null and length(title) > 4;')
 
-reviewed_album_uris = [a[0] for a in albums_cursor.fetchall()]
+album_data = albums_cursor.fetchall()
+reviewed_album_uris = [a[0] for a in album_data]
+reviewed_album_names = [a[1] for a in album_data]
 
-sql_text = ('select albums.uri, count(tracks.id) '
+sql_text = ('select albums.uri, albums.name, count(tracks.id) '
              'from tracks join albums on tracks.album_id = albums.id '
              'where albums.source = \'sp\' '
-             'group by album_id having count(tracks.id) > 3 '
+             'group by album_id having count(tracks.id) > 10 '
              'order by count(tracks.id) desc;')
 
 local_cursor.execute(sql_text)
 
-listened_albums = [{'uri': a[0], 'tracks': a[1]} for a in local_cursor.fetchall()]
+listened_albums = [{'uri': a[0], 'title': a[1], 'tracks': a[2]} for a in local_cursor.fetchall()]
+unlistened_albums = []
 
 for listened_album in listened_albums:
-    if listened_album['uri'] not in reviewed_album_uris:
-        sp_album = sp.album(listened_album['uri'])
-        print(f'{listened_album['tracks']} listened from {sp_album['name']} by {sp_album["artists"][0]["name"]}')
+    if listened_album['uri'] in reviewed_album_uris:
+        continue
+    accepted = False
+    for name in reviewed_album_names:
+        if listened_album['title'].lower() in name.lower() or name.lower() in listened_album['title'].lower():
+            print(f'Looking for {listened_album['title']}...')
+            accept = input(f'Is {name} the same thing? Type if not')
+            if not accept:
+                accepted = True
+                break
+    if accepted:
+        continue
+    print(listened_album['tracks'])
+    unlistened_albums.append(f'{listened_album['tracks']} from {listened_album['title']}')
+
+print(unlistened_albums)
